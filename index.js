@@ -2,7 +2,6 @@ const express = require("express");
 const requestIP = require("request-ip");
 const nodeCache = require("node-cache");
 const isIp = require("is-ip");
-
 const app = express();
 
 const TIME_FRAME_IN_S = 10;
@@ -11,15 +10,21 @@ const MS_TO_S = 1 / 1000;
 const RPS_LIMIT = 2;
 
 const ipMiddleware = async function (req, res, next) {
+  
   let clientIP = requestIP.getClientIp(req);
+  
   if (isIp.v6(clientIP)) {
     clientIP = clientIP.split(":").splice(0, 4).join(":") + "::/64";
   }
+  
   updateCache(clientIP);
   const IPArray = IPCache.get(clientIP);
+  
   if (IPArray.length > 1) {
+    
     const rps =
       IPArray.length / ((IPArray[IPArray.length - 1] - IPArray[0]) * MS_TO_S);
+    
     if (rps > RPS_LIMIT) {
       console.log("You are hitting limit", clientIP);
     }
